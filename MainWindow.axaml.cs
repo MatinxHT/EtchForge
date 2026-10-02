@@ -33,13 +33,16 @@ public partial class MainWindow : Window
         ImportButton = this.FindControl<Button>("ImportButton")!;
         SourceName = this.FindControl<TextBlock>("SourceName")!;
         SourceSummary = this.FindControl<TextBlock>("SourceSummary")!;
+        SourceDetails = this.FindControl<StackPanel>("SourceDetails")!;
         ShaText = this.FindControl<TextBox>("ShaText")!;
         Md5Text = this.FindControl<TextBox>("Md5Text")!;
+        ImportFeedback = this.FindControl<StackPanel>("ImportFeedback")!;
         ImportStatus = this.FindControl<TextBlock>("ImportStatus")!;
         ImportProgress = this.FindControl<ProgressBar>("ImportProgress")!;
         FormatDescription = this.FindControl<TextBlock>("FormatDescription")!;
         ConversionStatus = this.FindControl<TextBlock>("ConversionStatus")!;
         ConversionProgress = this.FindControl<ProgressBar>("ConversionProgress")!;
+        ConversionPanel = this.FindControl<StackPanel>("ConversionPanel")!;
         ProgressPercent = this.FindControl<TextBlock>("ProgressPercent")!;
         ConvertButton = this.FindControl<Button>("ConvertButton")!;
         CancelButton = this.FindControl<Button>("CancelButton")!;
@@ -69,6 +72,8 @@ public partial class MainWindow : Window
         _image = null;
         _busy = true;
         ImportButton.IsEnabled = false;
+        SourceDetails.IsVisible = true;
+        ImportFeedback.IsVisible = true;
         ShaText.Text = "正在计算…";
         Md5Text.Text = "正在计算…";
         SourceName.Text = Path.GetFileName(path);
@@ -91,6 +96,7 @@ public partial class MainWindow : Window
             Md5Text.Text = _image.Md5;
             ImportProgress.Value = 100;
             ImportStatus.Text = "校验完成 · 可开始转换";
+            ImportFeedback.IsVisible = false;
         }
         catch (Exception ex)
         {
@@ -127,12 +133,10 @@ public partial class MainWindow : Window
     private void RefreshPreview()
     {
         if (FormatPicker.SelectedItem is not OutputFormat format) return;
-        FormatDescription.Text = format.IsNativeEsxi
-            ? "原样复制磁盘数据，并生成 ESXi 描述文件。"
-            : "使用 qemu-img 在本机转换。";
-        OutputDirectoryText.Text = _outputDirectory ?? "导入镜像后自动建议目录";
+        FormatDescription.Text = format.Description;
+        OutputDirectoryText.Text = _outputDirectory ?? "导入后建议保存位置";
         if (_image is null || _outputDirectory is null)
-            OutputPreview.Text = "等待选择镜像和格式";
+            OutputPreview.Text = "选择镜像后显示产物路径";
         else
         {
             var baseName = Path.GetFileNameWithoutExtension(_image.Path) + "-" + format.Id;
@@ -157,6 +161,7 @@ public partial class MainWindow : Window
         ConvertButton.IsEnabled = false;
         ImportButton.IsEnabled = false;
         CancelButton.IsVisible = true;
+        ConversionPanel.IsVisible = true;
         ConversionProgress.Value = 0;
         ProgressPercent.Text = "0%";
         ConversionStatus.Text = "准备转换…";
@@ -172,6 +177,7 @@ public partial class MainWindow : Window
             var files = await ConversionService.ConvertAsync(_image, format, _outputDirectory, progress, _job.Token);
             OutputPreview.Text = string.Join("\n", files);
             OpenOutputButton.IsEnabled = true;
+            OpenOutputButton.IsVisible = true;
             ConversionProgress.Value = 100;
             ProgressPercent.Text = "100%";
             ConversionStatus.Text = $"完成 · 生成 {files.Count} 个文件";

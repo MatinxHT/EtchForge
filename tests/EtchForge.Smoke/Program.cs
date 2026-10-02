@@ -36,6 +36,8 @@ try
     var window = new MainWindow();
     window.Show();
     Dispatcher.UIThread.RunJobs();
+    if (Math.Abs(window.ClientSize.Width / window.ClientSize.Height - 21d / 9d) > 0.001)
+        throw new Exception("主窗口不是 21:9 比例。");
     if (window.FindControl<ComboBox>("FormatPicker")?.ItemCount != OutputFormat.All.Count)
         throw new Exception("格式选择器未正确加载。");
     using var frame = window.CaptureRenderedFrame() ?? throw new Exception("界面未渲染。");
