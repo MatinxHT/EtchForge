@@ -2,82 +2,94 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EtchForge.MainWindow"
         Title="EtchForge — 镜像格式转换"
-        Width="1240" Height="780" MinWidth="1020" MinHeight="680"
-        Background="#101827" Foreground="#F2F6FB">
+        Width="1240" Height="790" MinWidth="1020" MinHeight="700"
+        Background="#F8F9F4" Foreground="#27342A">
   <Window.Styles>
     <Style Selector="TextBlock.eyebrow">
       <Setter Property="FontSize" Value="12" />
       <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="Foreground" Value="#81A0B4" />
-      <Setter Property="LetterSpacing" Value="1.3" />
+      <Setter Property="Foreground" Value="#748A65" />
+      <Setter Property="LetterSpacing" Value="0.6" />
     </Style>
     <Style Selector="TextBlock.muted">
-      <Setter Property="Foreground" Value="#9AAABD" />
+      <Setter Property="Foreground" Value="#788579" />
       <Setter Property="FontSize" Value="13" />
     </Style>
     <Style Selector="Border.card">
-      <Setter Property="Background" Value="#1A2536" />
-      <Setter Property="BorderBrush" Value="#2D3E51" />
+      <Setter Property="Background" Value="#FFFFFF" />
+      <Setter Property="BorderBrush" Value="#E1E8DA" />
       <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="20" />
-      <Setter Property="Padding" Value="24" />
+      <Setter Property="CornerRadius" Value="18" />
+      <Setter Property="Padding" Value="26" />
     </Style>
     <Style Selector="Button.primary">
-      <Setter Property="Background" Value="#FC6A5D" />
-      <Setter Property="Foreground" Value="#111827" />
+      <Setter Property="Background" Value="#738F59" />
+      <Setter Property="Foreground" Value="#FFFFFF" />
       <Setter Property="FontWeight" Value="Bold" />
-      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="CornerRadius" Value="9" />
       <Setter Property="Padding" Value="20,13" />
     </Style>
     <Style Selector="Button.secondary">
-      <Setter Property="Background" Value="#29384B" />
-      <Setter Property="Foreground" Value="#F2F6FB" />
-      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="#F5F8F0" />
+      <Setter Property="Foreground" Value="#496540" />
+      <Setter Property="BorderBrush" Value="#DDE8D3" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="9" />
       <Setter Property="Padding" Value="16,11" />
     </Style>
     <Style Selector="TextBox.readonly">
-      <Setter Property="Background" Value="#111C2C" />
-      <Setter Property="Foreground" Value="#B9CAD7" />
-      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Background" Value="#F7F9F3" />
+      <Setter Property="Foreground" Value="#536453" />
+      <Setter Property="BorderBrush" Value="#E6EBE0" />
+      <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="8" />
       <Setter Property="Padding" Value="10,8" />
       <Setter Property="FontFamily" Value="Menlo,Consolas,monospace" />
       <Setter Property="FontSize" Value="11" />
     </Style>
+    <Style Selector="ProgressBar">
+      <Setter Property="Foreground" Value="#86A269" />
+      <Setter Property="Background" Value="#E8EEE3" />
+    </Style>
   </Window.Styles>
 
-  <Grid RowDefinitions="Auto,*,Auto" Margin="32,28,32,24">
-    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,26">
-      <StackPanel Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
-        <Border Width="46" Height="46" Background="#35D7C3" CornerRadius="13">
-          <TextBlock Text="◆" Foreground="#10212C" FontSize="26" FontWeight="Bold"
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="38,30,38,25">
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,32">
+      <StackPanel Orientation="Horizontal" Spacing="13" VerticalAlignment="Center">
+        <Border Width="44" Height="44" Background="#E2EBD9" CornerRadius="22">
+          <TextBlock Text="茶" Foreground="#5B784C" FontSize="21" FontWeight="SemiBold"
                      HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
-        <StackPanel Spacing="2">
-          <TextBlock Text="EtchForge" FontSize="25" FontWeight="Bold" />
-          <TextBlock Text="把磁盘镜像带到你需要的平台" Classes="muted" />
+        <StackPanel Spacing="1">
+          <TextBlock Text="EtchForge" FontSize="22" FontWeight="SemiBold" />
+          <TextBlock Text="轻巧的镜像转换工具" Classes="muted" FontSize="12" />
         </StackPanel>
       </StackPanel>
-      <Border Grid.Column="1" Background="#1E3141" CornerRadius="999" Padding="14,8" VerticalAlignment="Center">
+      <Border Grid.Column="1" Background="#EDF3E7" CornerRadius="999" Padding="14,8" VerticalAlignment="Center">
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Border Width="8" Height="8" Background="#35D7C3" CornerRadius="4" VerticalAlignment="Center" />
-          <TextBlock x:Name="EngineStatus" Text="检测转换引擎中…" FontSize="12" />
+          <Border Width="7" Height="7" Background="#7F9D65" CornerRadius="4" VerticalAlignment="Center" />
+          <TextBlock x:Name="EngineStatus" Text="检测转换引擎中…" FontSize="12" Foreground="#526B49" />
         </StackPanel>
       </Border>
     </Grid>
 
-    <Grid Grid.Row="1" ColumnDefinitions="*,20,*,20,*">
+    <StackPanel Grid.Row="1" Spacing="6" Margin="0,0,0,24">
+      <TextBlock Text="镜像转换，刚刚好。" FontSize="33" FontWeight="SemiBold" />
+      <TextBlock Text="选好文件、格式和位置，剩下的交给 EtchForge。" Classes="muted" FontSize="14" />
+    </StackPanel>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,18,*,18,*">
       <!-- Source -->
       <Border Grid.Column="0" Classes="card">
         <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
           <StackPanel Spacing="8">
-            <TextBlock Text="01  SOURCE" Classes="eyebrow" />
-            <TextBlock Text="选择镜像" FontSize="25" FontWeight="Bold" />
+            <TextBlock Text="01  导入" Classes="eyebrow" />
+            <TextBlock Text="选择镜像" FontSize="23" FontWeight="SemiBold" />
             <TextBlock Text="导入完整的 raw .img 磁盘镜像" Classes="muted" TextWrapping="Wrap" />
           </StackPanel>
-          <Button x:Name="ImportButton" Grid.Row="1" Classes="primary" Content="＋  选择 IMG 文件"
+          <Button x:Name="ImportButton" Grid.Row="1" Classes="secondary" Content="＋  选择 IMG 文件"
                   Click="Import_Click" HorizontalAlignment="Stretch" Margin="0,26,0,18" />
-          <Border Grid.Row="2" Background="#122334" CornerRadius="12" Padding="14" MinHeight="70">
+          <Border Grid.Row="2" Background="#F6F8F2" CornerRadius="10" Padding="14" MinHeight="70">
             <StackPanel Spacing="5">
               <TextBlock x:Name="SourceName" Text="尚未选择文件" FontWeight="SemiBold" TextWrapping="Wrap" />
               <TextBlock x:Name="SourceSummary" Text="镜像大小和分区结构将在这里显示" Classes="muted" TextWrapping="Wrap" />
@@ -98,30 +110,30 @@
       </Border>
 
       <!-- Connector -->
-      <TextBlock Grid.Column="1" Text="›" Foreground="#35D7C3" FontSize="35"
+      <TextBlock Grid.Column="1" Text="›" Foreground="#9CAF8E" FontSize="28"
                  HorizontalAlignment="Center" VerticalAlignment="Center" />
 
       <!-- Format and progress -->
       <Border Grid.Column="2" Classes="card">
         <Grid RowDefinitions="Auto,Auto,*,Auto">
           <StackPanel Spacing="8">
-            <TextBlock Text="02  FORMAT" Classes="eyebrow" />
-            <TextBlock Text="选择格式" FontSize="25" FontWeight="Bold" />
+            <TextBlock Text="02  转换" Classes="eyebrow" />
+            <TextBlock Text="选择格式" FontSize="23" FontWeight="SemiBold" />
             <TextBlock Text="本地转换，不连接虚拟机平台" Classes="muted" />
           </StackPanel>
-          <ComboBox x:Name="FormatPicker" Grid.Row="1" Margin="0,26,0,12" MinHeight="48"
-                    SelectionChanged="Format_Changed" Background="#122334" Foreground="#F2F6FB">
+          <ComboBox x:Name="FormatPicker" Grid.Row="1" Margin="0,26,0,12" MinHeight="48" HorizontalAlignment="Stretch"
+                    SelectionChanged="Format_Changed" Background="#F7F9F3" Foreground="#27342A">
             <ComboBox.ItemTemplate>
               <DataTemplate>
                 <StackPanel Margin="2" Spacing="2">
-                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#F2F6FB" />
-                  <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#9AAABD" />
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#27342A" />
+                  <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#788579" />
                 </StackPanel>
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
           <StackPanel Grid.Row="2" Spacing="12" Margin="0,12,0,0">
-            <Border Background="#122334" CornerRadius="12" Padding="15">
+            <Border Background="#F6F8F2" CornerRadius="10" Padding="15">
               <StackPanel Spacing="7">
                 <TextBlock Text="转换说明" Classes="eyebrow" />
                 <TextBlock x:Name="FormatDescription" Text="请选择输出格式" TextWrapping="Wrap" FontSize="13" />
@@ -129,7 +141,7 @@
             </Border>
             <TextBlock x:Name="ConversionStatus" Text="等待开始" Classes="muted" TextWrapping="Wrap" />
             <ProgressBar x:Name="ConversionProgress" Minimum="0" Maximum="100" Value="0" Height="9" />
-            <TextBlock x:Name="ProgressPercent" Text="0%" FontSize="30" FontWeight="Bold" Foreground="#35D7C3" />
+            <TextBlock x:Name="ProgressPercent" Text="0%" FontSize="29" FontWeight="SemiBold" Foreground="#64804F" />
           </StackPanel>
           <StackPanel Grid.Row="3" Spacing="10">
             <Button x:Name="ConvertButton" Classes="primary" Content="开始转换  →" Click="Convert_Click"
@@ -140,20 +152,20 @@
         </Grid>
       </Border>
 
-      <TextBlock Grid.Column="3" Text="›" Foreground="#35D7C3" FontSize="35"
+      <TextBlock Grid.Column="3" Text="›" Foreground="#9CAF8E" FontSize="28"
                  HorizontalAlignment="Center" VerticalAlignment="Center" />
 
       <!-- Destination -->
       <Border Grid.Column="4" Classes="card">
         <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
           <StackPanel Spacing="8">
-            <TextBlock Text="03  DESTINATION" Classes="eyebrow" />
-            <TextBlock Text="查看产物" FontSize="25" FontWeight="Bold" />
+            <TextBlock Text="03  完成" Classes="eyebrow" />
+            <TextBlock Text="查看产物" FontSize="23" FontWeight="SemiBold" />
             <TextBlock Text="选择输出目录并追踪文件位置" Classes="muted" TextWrapping="Wrap" />
           </StackPanel>
           <Button Grid.Row="1" Classes="secondary" Content="⌁  选择输出文件夹" Click="Output_Click"
                   HorizontalAlignment="Stretch" Margin="0,26,0,18" />
-          <Border Grid.Row="2" Background="#122334" CornerRadius="12" Padding="14">
+          <Border Grid.Row="2" Background="#F6F8F2" CornerRadius="10" Padding="14">
             <StackPanel Spacing="6">
               <TextBlock Text="输出目录" Classes="eyebrow" />
               <TextBlock x:Name="OutputDirectoryText" Text="导入镜像后自动建议目录" TextWrapping="Wrap" FontSize="12" />
@@ -172,9 +184,9 @@
       </Border>
     </Grid>
 
-    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,22,0,0">
-      <TextBlock Text="LOCAL • OFFLINE • YOUR DISK STAYS YOURS" Classes="eyebrow" VerticalAlignment="Center" />
-      <TextBlock Grid.Column="1" Text="Avalonia 12  ·  .NET 10" Classes="muted" />
+    <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,18,0,0">
+      <TextBlock Text="所有操作都在这台电脑上完成" Classes="muted" FontSize="12" VerticalAlignment="Center" />
+      <TextBlock Grid.Column="1" Text="EtchForge" Classes="muted" FontSize="12" />
     </Grid>
   </Grid>
 </Window>
