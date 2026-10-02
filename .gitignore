@@ -1,0 +1,13 @@
+bin/
+obj/
+**/bin/
+**/obj/
+.DS_Store
+*.user
+*.suo
+converted/
+*.img
+*.vhd
+*.vhdx
+*.qcow2
+*.vmdk
