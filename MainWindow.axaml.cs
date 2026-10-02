@@ -127,9 +127,9 @@ public partial class MainWindow : Window
     private void RefreshPreview()
     {
         if (FormatPicker.SelectedItem is not OutputFormat format) return;
-        FormatDescription.Text = format.Description + (format.IsNativeEsxi
-            ? "\n直接逐字节复制；不改变分区和文件系统。"
-            : "\n由 qemu-img 在本机离线转换。");
+        FormatDescription.Text = format.IsNativeEsxi
+            ? "原样复制磁盘数据，并生成 ESXi 描述文件。"
+            : "使用 qemu-img 在本机转换。";
         OutputDirectoryText.Text = _outputDirectory ?? "导入镜像后自动建议目录";
         if (_image is null || _outputDirectory is null)
             OutputPreview.Text = "等待选择镜像和格式";
