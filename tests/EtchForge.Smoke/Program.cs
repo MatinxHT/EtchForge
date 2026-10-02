@@ -43,6 +43,19 @@ try
     using var frame = window.CaptureRenderedFrame() ?? throw new Exception("界面未渲染。");
     if (args.Length > 0) frame.Save(args[0], Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
     Console.WriteLine($"Avalonia 界面加载与渲染通过：{frame.PixelSize.Width} × {frame.PixelSize.Height}");
+    if (args.Length > 1)
+    {
+        window.FindControl<StackPanel>("SourceDetails")!.IsVisible = true;
+        window.FindControl<TextBlock>("SourceName")!.Text = image.FileName;
+        window.FindControl<TextBlock>("SourceSummary")!.Text = $"{image.SizeText}\n{image.PartitionScheme}";
+        window.FindControl<TextBox>("ShaText")!.Text = image.Sha256;
+        window.FindControl<TextBox>("Md5Text")!.Text = image.Md5;
+        window.FindControl<Button>("CopyShaButton")!.IsEnabled = true;
+        window.FindControl<Button>("CopyMd5Button")!.IsEnabled = true;
+        Dispatcher.UIThread.RunJobs();
+        using var selectedFrame = window.CaptureRenderedFrame() ?? throw new Exception("镜像详情未渲染。");
+        selectedFrame.Save(args[1], Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
+    }
     window.Close();
 }
 finally { Directory.Delete(work, recursive: true); }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
@@ -36,6 +37,8 @@ public partial class MainWindow : Window
         SourceDetails = this.FindControl<StackPanel>("SourceDetails")!;
         ShaText = this.FindControl<TextBox>("ShaText")!;
         Md5Text = this.FindControl<TextBox>("Md5Text")!;
+        CopyShaButton = this.FindControl<Button>("CopyShaButton")!;
+        CopyMd5Button = this.FindControl<Button>("CopyMd5Button")!;
         ImportFeedback = this.FindControl<StackPanel>("ImportFeedback")!;
         ImportStatus = this.FindControl<TextBlock>("ImportStatus")!;
         ImportProgress = this.FindControl<ProgressBar>("ImportProgress")!;
@@ -74,6 +77,10 @@ public partial class MainWindow : Window
         ImportButton.IsEnabled = false;
         SourceDetails.IsVisible = true;
         ImportFeedback.IsVisible = true;
+        CopyShaButton.IsEnabled = false;
+        CopyMd5Button.IsEnabled = false;
+        CopyShaButton.Content = "复制";
+        CopyMd5Button.Content = "复制";
         ShaText.Text = "正在计算…";
         Md5Text.Text = "正在计算…";
         SourceName.Text = Path.GetFileName(path);
@@ -94,6 +101,8 @@ public partial class MainWindow : Window
             SourceSummary.Text = $"{_image.SizeText}\n{_image.PartitionScheme}";
             ShaText.Text = _image.Sha256;
             Md5Text.Text = _image.Md5;
+            CopyShaButton.IsEnabled = true;
+            CopyMd5Button.IsEnabled = true;
             ImportProgress.Value = 100;
             ImportStatus.Text = "校验完成 · 可开始转换";
             ImportFeedback.IsVisible = false;
@@ -103,6 +112,8 @@ public partial class MainWindow : Window
             SourceSummary.Text = "镜像读取失败";
             ShaText.Text = "—";
             Md5Text.Text = "—";
+            CopyShaButton.IsEnabled = false;
+            CopyMd5Button.IsEnabled = false;
             ImportStatus.Text = ex.Message;
         }
         finally
@@ -202,6 +213,26 @@ public partial class MainWindow : Window
     }
 
     private void Cancel_Click(object? sender, RoutedEventArgs e) => _job?.Cancel();
+
+    private async void CopySha_Click(object? sender, RoutedEventArgs e) =>
+        await CopyHashAsync(_image?.Sha256, CopyShaButton);
+
+    private async void CopyMd5_Click(object? sender, RoutedEventArgs e) =>
+        await CopyHashAsync(_image?.Md5, CopyMd5Button);
+
+    private async Task CopyHashAsync(string? value, Button button)
+    {
+        if (string.IsNullOrEmpty(value) || Clipboard is null) return;
+        try
+        {
+            await Clipboard.SetTextAsync(value);
+            button.Content = "已复制";
+        }
+        catch
+        {
+            button.Content = "复制失败";
+        }
+    }
 
     private void OpenOutput_Click(object? sender, RoutedEventArgs e)
     {

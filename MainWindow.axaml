@@ -27,7 +27,7 @@
       <Setter Property="Foreground" Value="#536852" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="Padding" Value="0" />
-      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontSize" Value="12" />
     </Style>
     <Style Selector="ProgressBar">
       <Setter Property="Foreground" Value="#739365" />
@@ -43,7 +43,7 @@
                  Classes="note" HorizontalAlignment="Right" VerticalAlignment="Center" />
     </Grid>
 
-    <Grid Grid.Row="1" ColumnDefinitions="250,100,250,100,250" RowDefinitions="85,60,170"
+    <Grid Grid.Row="1" ColumnDefinitions="250,100,250,100,250" RowDefinitions="85,60,190"
           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,5">
       <!-- One horizontal action path, following the reference's visual rhythm. -->
       <Border Grid.Column="0" Grid.Row="0" Width="58" Height="58" CornerRadius="29"
@@ -86,16 +86,18 @@
                      TextAlignment="Center" TextTrimming="CharacterEllipsis" />
           <TextBlock x:Name="SourceSummary" Text="" Classes="note" TextAlignment="Center"
                      TextWrapping="Wrap" MaxHeight="34" />
-          <Expander Header="查看校验值" HorizontalAlignment="Center" FontSize="11" Foreground="#55794F">
-            <ScrollViewer Height="82" Width="235" VerticalScrollBarVisibility="Auto">
-              <StackPanel Spacing="4" Margin="0,4,0,0">
-                <TextBlock Text="SHA-256" Classes="note" />
-                <TextBox x:Name="ShaText" Classes="value" Text="" IsReadOnly="True" TextWrapping="Wrap" />
-                <TextBlock Text="MD5" Classes="note" />
-                <TextBox x:Name="Md5Text" Classes="value" Text="" IsReadOnly="True" TextWrapping="Wrap" />
-              </StackPanel>
-            </ScrollViewer>
-          </Expander>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
+            <TextBlock Text="SHA-256" Classes="note" VerticalAlignment="Center" />
+            <Button x:Name="CopyShaButton" Grid.Column="1" Classes="link" Content="复制"
+                    Click="CopySha_Click" IsEnabled="False" FontSize="11" />
+          </Grid>
+          <TextBox x:Name="ShaText" Classes="value" Text="" IsReadOnly="True" TextWrapping="Wrap" />
+          <Grid ColumnDefinitions="*,Auto" Margin="0,3,0,0">
+            <TextBlock Text="MD5" Classes="note" VerticalAlignment="Center" />
+            <Button x:Name="CopyMd5Button" Grid.Column="1" Classes="link" Content="复制"
+                    Click="CopyMd5_Click" IsEnabled="False" FontSize="11" />
+          </Grid>
+          <TextBox x:Name="Md5Text" Classes="value" Text="" IsReadOnly="True" TextWrapping="Wrap" />
         </StackPanel>
         <StackPanel x:Name="ImportFeedback" Spacing="5" IsVisible="False" Margin="0,4,0,0">
           <TextBlock x:Name="ImportStatus" Text="" Classes="note" TextAlignment="Center" TextWrapping="Wrap" />
