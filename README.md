@@ -13,6 +13,8 @@ dotnet restore
 dotnet run
 ```
 
+在 VS Code 中打开本仓库文件夹，按 **F5** 并选择 **EtchForge (.NET 10)** 即可先构建再调试。需要安装 C# 扩展或 C# Dev Kit。
+
 应用内置 **ESXi flat VMDK** 转换，无需其他程序。选择 VHD、VHDX、QCOW2 或其他 VMDK 类型时，需要在本机安装 [QEMU 的 `qemu-img`](https://www.qemu.org/docs/master/tools/qemu-img.html)，并将其加入 `PATH`；也可用 `QEMU_IMG_PATH` 环境变量指定可执行文件。macOS Homebrew 通常使用 `brew install qemu`。应用会显示转换引擎检测结果；缺少 `qemu-img` 时仍可使用内置的 ESXi 格式。
 
 ## 支持的输出
