@@ -30,8 +30,10 @@ public static class ConversionService
         string outputDirectory, IProgress<double>? progress, CancellationToken token)
     {
         if (!Directory.Exists(outputDirectory)) throw new DirectoryNotFoundException("输出文件夹不存在。");
-        if (!File.Exists(image.Path) || new FileInfo(image.Path).Length != image.Bytes)
+        if (!File.Exists(image.Path) || new FileInfo(image.Path).Length != image.Bytes ||
+            new FileInfo(image.Path).LastWriteTimeUtc != image.LastWriteTimeUtc)
             throw new IOException("源镜像已被移动或大小发生变化，请重新导入。");
+        if (image.IsOptical) throw new InvalidDataException("ISO 光盘镜像不能作为虚拟硬盘转换。");
         var baseName = $"{Path.GetFileNameWithoutExtension(image.Path)}-{format.Id}";
         if (format.IsNativeEsxi && baseName.IndexOfAny(['"', '\\', '\n', '\r']) >= 0)
             throw new InvalidDataException("ESXi VMDK 文件名不能包含引号、反斜杠或换行。");
@@ -50,7 +52,8 @@ public static class ConversionService
             {
                 var qemu = FindQemuImg() ?? throw new FileNotFoundException(
                     "此格式需要 qemu-img。请安装 QEMU，或设置 QEMU_IMG_PATH 指向 qemu-img 可执行文件。");
-                await ConvertWithQemuAsync(qemu, image.Path, stagedOutput, format, progress, token);
+                await ConvertWithQemuAsync(qemu, image.Path, stagedOutput, image.Format,
+                    format.QemuFormat!, format.QemuOptions, progress, token);
             }
 
             var generated = Directory.GetFiles(staging);
@@ -84,6 +87,13 @@ public static class ConversionService
     {
         var flatName = baseName + "-flat.vmdk";
         var flatPath = Path.Combine(directory, flatName);
+        if (image.Format != "raw")
+        {
+            var qemu = FindQemuImg() ?? throw new FileNotFoundException("转换此镜像需要 qemu-img。");
+            await ConvertWithQemuAsync(qemu, image.Path, flatPath, image.Format, "raw", null, progress, token);
+        }
+        else
+        {
         await using (var source = new FileStream(image.Path, FileMode.Open, FileAccess.Read, FileShare.Read,
             4 * 1024 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
         await using (var target = new FileStream(flatPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
@@ -110,10 +120,11 @@ public static class ConversionService
             }
             finally { ArrayPool<byte>.Shared.Return(buffer); }
         }
-        if (new FileInfo(flatPath).Length != image.Bytes)
+        }
+        if (new FileInfo(flatPath).Length != image.VirtualBytes)
             throw new IOException("输出大小与源镜像不一致。");
 
-        var sectors = image.Bytes / 512;
+        var sectors = image.VirtualBytes / 512;
         var cylinders = Math.Max(1, sectors / (255 * 63));
         var cid = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(4)).ToLowerInvariant();
         var descriptor = $"""
@@ -139,19 +150,19 @@ public static class ConversionService
     }
 
     private static async Task ConvertWithQemuAsync(string executable, string source, string destination,
-        OutputFormat format, IProgress<double>? progress, CancellationToken token)
+        string sourceFormat, string targetFormat, string? options, IProgress<double>? progress, CancellationToken token)
     {
         var start = new ProcessStartInfo(executable)
         {
             UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true,
             CreateNoWindow = true
         };
-        foreach (var part in new[] { "convert", "-p", "-f", "raw", "-O", format.QemuFormat! })
+        foreach (var part in new[] { "convert", "-p", "-f", sourceFormat, "-O", targetFormat })
             start.ArgumentList.Add(part);
-        if (format.QemuOptions is not null)
+        if (options is not null)
         {
             start.ArgumentList.Add("-o");
-            start.ArgumentList.Add(format.QemuOptions);
+            start.ArgumentList.Add(options);
         }
         start.ArgumentList.Add(source);
         start.ArgumentList.Add(destination);

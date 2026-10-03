@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EtchForge.Services;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace EtchForge.ViewModels;
 
@@ -17,6 +19,11 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _engineValue = "";
     [ObservableProperty] private string _closeLabel = "";
     [ObservableProperty] private string _saveStatus = "";
+    [ObservableProperty] private string _systemInfo = "";
+    [ObservableProperty] private string _installLabel = "";
+    [ObservableProperty] private string _windowsInstallLabel = "";
+    [ObservableProperty] private string _unixInstallLabel = "";
+    [ObservableProperty] private string _installStatus = "";
 
     public event Action? CloseRequested;
 
@@ -43,10 +50,28 @@ public partial class SettingsViewModel : ObservableObject
         Title = T("settings");
         LanguageLabel = T("language");
         EngineLabel = T("engine");
-        EngineValue = T(_converter.IsQemuAvailable ? "engineReady" : "engineMissing");
+        var separator = _preferences.Language == UiLanguage.Chinese ? "：" : ": ";
+        EngineValue = $"{T("builtInEsxi")}{separator}{T("engineReady")}\n" +
+                      $"qemu-img{separator}{T(_converter.IsQemuAvailable ? "engineReady" : "engineMissing")}";
+        SystemInfo = $"{T("operatingSystem")}{separator}{RuntimeInformation.OSDescription.Trim()} · " +
+                     $"{T("cpuArchitecture")}{separator}{RuntimeInformation.OSArchitecture.ToString().ToUpperInvariant()}";
         CloseLabel = T("close");
+        InstallLabel = T("installQemu");
+        WindowsInstallLabel = T("windowsInstall");
+        UnixInstallLabel = T("unixInstall");
     }
 
     [RelayCommand] private void Close() => CloseRequested?.Invoke();
+
+    [RelayCommand]
+    private void OpenQemuDocs()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo("https://www.qemu.org/download/") { UseShellExecute = true });
+            InstallStatus = "";
+        }
+        catch (Exception ex) { InstallStatus = ex.Message; }
+    }
 
 }

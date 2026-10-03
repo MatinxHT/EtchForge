@@ -36,6 +36,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _openFolderLabel = "";
     [ObservableProperty] private string _copyShaLabel = "";
     [ObservableProperty] private string _copyMd5Label = "";
+    [ObservableProperty] private string _detailsLabel = "";
     [ObservableProperty] private string _footerText = "";
     [ObservableProperty] private string _resultHint = "";
     [ObservableProperty] private string _elapsedLabel = "";
@@ -69,6 +70,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _openFolderEnabled;
     [ObservableProperty] private bool _copyShaEnabled;
     [ObservableProperty] private bool _copyMd5Enabled;
+    [ObservableProperty] private bool _detailsEnabled;
 
     public MainWindowViewModel(IImageInspector inspector, IImageConverter converter,
         IDesktopInteraction desktop, IAppPreferences preferences)
@@ -93,6 +95,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         OpenFolderLabel = T("openFolder");
         CopyShaLabel = T("copy");
         CopyMd5Label = T("copy");
+        DetailsLabel = T("details");
         FooterText = T("localOnly");
         ResultHint = T("resultHint");
         ElapsedLabel = T("elapsed");
@@ -130,9 +133,13 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             "GPT · 带保护 MBR" => T("gpt"),
             "未识别分区表 / 无分区磁盘" => T("unknownPartitions"),
+            "未识别 / 无分区" => T("unknownLayout"),
+            "ISO 9660 / 光盘" => T("isoLayout"),
+            "UDF / 光盘" => T("udfLayout"),
             _ => _image.PartitionScheme
         };
-        SourceSummary = $"{_image.SizeText}\n{partition}";
+        var format = _image.Format == "vpc" ? "VHD" : _image.Format.ToUpperInvariant();
+        SourceSummary = $"{format} · {_image.SizeText}\n{partition}";
     }
 
     private void UpdateResultSummary()
@@ -194,10 +201,15 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             OutputPreview = string.Join("\n", paths.Select(Path.GetFileName));
         }
         OutputPreviewToolTip = paths is null ? null : string.Join("\n", paths);
-        ConvertEnabled = !_busy && _image is not null && _outputDirectory is not null &&
-            (format.IsNativeEsxi || _converter.IsQemuAvailable);
+        ConvertEnabled = !_busy && _image is { IsOptical: false } && _outputDirectory is not null &&
+            (_image.Format == "raw" && format.IsNativeEsxi || _converter.IsQemuAvailable);
         OpenFolderEnabled = _outputDirectory is not null && Directory.Exists(_outputDirectory);
-        if (!format.IsNativeEsxi && !_converter.IsQemuAvailable && !_busy)
+        if (_image?.IsOptical == true)
+        {
+            ConversionPanelVisible = false;
+            return;
+        }
+        if ((_image is { Format: not "raw", IsOptical: false } || !format.IsNativeEsxi) && !_converter.IsQemuAvailable && !_busy)
         {
             ConversionPanelVisible = true;
             SetConversionStatus("needsQemu");
@@ -213,12 +225,19 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task OpenSettingsAsync() => await _desktop.ShowSettingsAsync();
 
     [RelayCommand]
+    private async Task ShowDetailsAsync()
+    {
+        if (_image is not null) await _desktop.ShowImageDetailsAsync(_image, _preferences.Language);
+    }
+
+    [RelayCommand]
     private async Task ImportAsync()
     {
         if (_busy) return;
         var path = await _desktop.ChooseImageAsync(T("chooseImage"));
         if (path is null) return;
         _image = null;
+        DetailsEnabled = false;
         _busy = true;
         ClearResult();
         ImportEnabled = false;
@@ -243,14 +262,15 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
                 ImportStatus = $"{T("calculatingHashes")} · {value:P0}";
             }));
             _image = await Task.Run(() => _inspector.InspectAsync(path, progress, job.Token));
+            DetailsEnabled = true;
             _outputDirectory ??= Path.Combine(Path.GetDirectoryName(path)!, "converted");
             UpdateSourceSummary();
             ShaText = _image.Sha256;
             Md5Text = _image.Md5;
             CopyShaEnabled = CopyMd5Enabled = true;
             ImportProgressValue = 100;
-            ImportStatus = T("ready");
-            ImportFeedbackVisible = false;
+            ImportStatus = T(_image.IsOptical ? "opticalOnly" : "ready");
+            ImportFeedbackVisible = _image.IsOptical;
         }
         catch (OperationCanceledException) { ImportStatus = T("canceled"); }
         catch (Exception ex)

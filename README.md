@@ -1,6 +1,6 @@
 # EtchForge
 
-一个用 Avalonia 12 和 .NET 10 编写的本地磁盘镜像转换桌面应用。固定 21:9 的主窗口沿一条横向流程完成：左侧导入 raw `.img`，中间选择格式、保存位置并转换，右侧打开输出文件夹、查看耗时和产物信息。导入后直接显示 SHA-256 和 MD5，可选中文本或点击对应的“复制”按钮。右上角设置可在简体中文与 English 之间即时切换，选择会保存到本机。不会连接 ESXi、Hyper-V 或其他虚拟机平台。
+一个用 Avalonia 12 和 .NET 10 编写的本地磁盘镜像转换桌面应用。固定 21:9 的主窗口沿一条横向流程完成：左侧导入镜像，中间选择格式、保存位置并转换，右侧打开输出文件夹、查看耗时和产物信息。导入后直接显示 SHA-256 和 MD5，详情窗口显示分区、文件系统、容器元数据，并可粘贴预期 SHA-256 核对。右上角设置可在简体中文与 English 之间即时切换，选择会保存到本机。不会连接 ESXi、Hyper-V 或其他虚拟机平台。
 
 界面采用 CommunityToolkit.Mvvm 的可观察属性与命令；Microsoft.Extensions.Hosting 管理应用生命周期，Microsoft.Extensions.DependencyInjection 负责窗口、ViewModel 和服务的创建。
 
@@ -17,7 +17,11 @@ dotnet run
 
 在 VS Code 中打开本仓库文件夹，按 **F5** 并选择 **EtchForge (.NET 10)** 即可先构建再调试。需要安装 C# 扩展或 C# Dev Kit。
 
-应用内置 **ESXi flat VMDK** 转换，无需其他程序。选择 VHD、VHDX、QCOW2 或其他 VMDK 类型时，需要在本机安装 [QEMU 的 `qemu-img`](https://www.qemu.org/docs/master/tools/qemu-img.html)，并将其加入 `PATH`；也可用 `QEMU_IMG_PATH` 环境变量指定可执行文件。macOS Homebrew 通常使用 `brew install qemu`。设置窗口会显示转换引擎检测结果；缺少 `qemu-img` 时仍可使用内置的 ESXi 格式。
+### macOS 应用包与图标
+
+在 macOS 上运行 `./scripts/package-macos.sh`，会按当前 CPU 架构发布应用包到 `dist/osx-arm64/EtchForge.app` 或 `dist/osx-x64/EtchForge.app`。默认产物需要本机安装 .NET 10 运行时；传入 `--self-contained` 可发布自包含版本，但需要相应的 .NET runtime pack。也可传入 `arm64` 或 `x64` 指定目标架构。用 Finder 或 `open dist/osx-arm64/EtchForge.app` 启动应用包，Dock 和 Finder 图标来自 `Contents/Resources/etchforge.icns`。直接运行 `dotnet run` 或 `bin/` 下的裸可执行文件不会提供完整的 macOS 应用包图标。
+
+应用内置 **raw 到 ESXi flat VMDK** 转换，无需其他程序。读取 VMDK、VHD、VHDX、QCOW2、VDI、DMG，以及其他格式的转换，需要在本机安装 [QEMU 的 `qemu-img`](https://www.qemu.org/docs/master/tools/qemu-img.html)，并将其加入 `PATH`；也可用 `QEMU_IMG_PATH` 环境变量指定可执行文件。设置窗口提供 [QEMU 官方下载与安装说明](https://www.qemu.org/download/)入口，页面含 Windows、macOS 和 Linux 的安装方式。缺少 `qemu-img` 时仍可读取 raw 与 ISO，并可将 raw 转为 ESXi flat VMDK。
 
 ## 支持的输出
 
@@ -27,14 +31,16 @@ dotnet run
 | VHD | qemu-img | 固定大小 |
 | VHDX | qemu-img | 动态大小 |
 | QCOW2 | qemu-img | 默认兼容格式 |
+| VDI | qemu-img | VirtualBox 动态磁盘 |
+| RAW | qemu-img | 原始磁盘 |
 | VMDK monolithicSparse | qemu-img | 稀疏单文件 |
 | VMDK monolithicFlat | qemu-img | 描述符和数据文件 |
 | VMDK twoGbMaxExtentSparse | qemu-img | 2 GB 稀疏分卷 |
 | VMDK streamOptimized | qemu-img | 用于 OVF 分发 |
 
-输入目前限定为**完整的 raw 磁盘镜像**，且大小须为 512 字节的整数倍。扩展名为 `.img` 不一定代表 raw；程序会拒绝可识别的 QCOW2、VHDX 和 VMDK 容器，但无法识别所有误命名文件。转换运行前应停止对源镜像的写入。
+输入支持 raw（`.img`、`.raw`、`.dd`、`.ima`、`.bin`）、VMDK、VHD、VHDX、QCOW2、VDI、DMG；ISO 9660 光盘镜像可检查，但不能当作可启动硬盘转换。raw 大小须为 512 字节的整数倍；扩展名不代表实际内容。容器识别依赖 `qemu-img info`，多文件 VMDK 与后备文件链需要其引用文件齐全。转换运行前应停止对源镜像及其后备文件的写入。
 
-导入后程序按流读取输入，显示大小、MBR/GPT 概况、SHA-256 和 MD5。输出写入目标目录内的临时文件夹，完成后再移动到目标路径；已有文件不会被覆盖。取消或转换失败时清理临时文件。
+导入后程序按流计算输入文件的 SHA-256 和 MD5，显示文件大小、虚拟容量、分区布局及其健康状态。详情窗口展示分区范围、部分文件系统及卷标、启动线索、后备文件、容器元数据和哈希核对结果。GPT 会检查主/备表头与分区项 CRC、范围及重叠；MBR 检查分区范围及重叠。文件系统和启动信息是只读线索，不保证镜像可启动。输出写入目标目录内的临时文件夹，完成后再移动到目标路径；已有文件不会被覆盖。取消或转换失败时清理临时文件。
 
 ## 验证
 
@@ -42,7 +48,7 @@ dotnet run
 dotnet run --project tests/EtchForge.Smoke/EtchForge.Smoke.csproj
 ```
 
-该测试使用 1 MiB 临时镜像检查哈希、ESXi 描述符和完整字节内容；通过 Host 解析 ViewModel 与窗口，执行导入、转换、复制命令，并用 Avalonia Headless 验证数据绑定、界面渲染和中英语言切换。测试不依赖 `qemu-img`；其他格式需在已安装 QEMU 的平台上进一步验证。
+该测试使用临时 raw、GPT 和 ISO 样本检查哈希、分区校验、光盘识别、ESXi 描述符及完整字节内容；在 macOS/Linux 上通过 `qemu-img` 测试替身检查容器信息和转换命令的参数传递。它还通过 Host 解析 ViewModel 与窗口，执行导入、转换、复制命令，并用 Avalonia Headless 验证数据绑定、界面渲染和中英语言切换。真实容器转换仍需在已安装 QEMU 的平台上进一步验证。
 
 ## 项目结构
 
@@ -53,6 +59,8 @@ dotnet run --project tests/EtchForge.Smoke/EtchForge.Smoke.csproj
 - `Services/ImageOperations.cs`：镜像检查与转换服务接口及适配器。
 - `Services/AppPreferences.cs`：语言设置持久化与变更通知。
 - `Services/ImageInspector.cs`：格式初筛、磁盘信息和哈希。
+- `Services/VirtualDiskReader.cs`、`Services/DiskLayoutInspector.cs`：虚拟扇区读取、分区与文件系统线索。
+- `ImageDetailsWindow.cs`：镜像详情和 SHA-256 核对。
 - `Services/ConversionService.cs`：内置 ESXi 转换、`qemu-img` 调用、进度和暂存发布。
 - `Models/OutputFormat.cs`：支持格式及其转换参数。
 - `tests/EtchForge.Smoke`：转换与界面烟测。

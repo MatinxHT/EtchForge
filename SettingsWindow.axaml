@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EtchForge.SettingsWindow"
-        Title="{Binding Title}" Width="430" Height="270" CanResize="False"
+        Title="{Binding Title}" Width="500" Height="470" CanResize="False"
+        Icon="avares://EtchForge/Assets/etchforge.png"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="#F9FAF6" Foreground="#27372B">
-  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="26,22,26,22">
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" Margin="26,22,26,18">
     <TextBlock x:Name="Heading" Text="{Binding Title}" FontSize="21" FontWeight="SemiBold" />
     <StackPanel Grid.Row="1" Spacing="8" Margin="0,24,0,0">
       <TextBlock x:Name="LanguageLabel" Text="{Binding LanguageLabel}" FontSize="12" Foreground="#748272" />
@@ -16,12 +17,25 @@
     </StackPanel>
     <StackPanel Grid.Row="2" Spacing="4" Margin="0,18,0,0">
       <TextBlock x:Name="EngineLabel" Text="{Binding EngineLabel}" FontSize="12" Foreground="#748272" />
-      <TextBlock x:Name="EngineValue" Text="{Binding EngineValue}" FontSize="12" TextWrapping="Wrap" />
+      <TextBlock x:Name="EngineValue" Text="{Binding EngineValue}" FontSize="12" LineHeight="24" TextWrapping="Wrap" />
     </StackPanel>
-    <TextBlock x:Name="SaveStatus" Grid.Row="3" Text="{Binding SaveStatus}" FontSize="11"
+    <StackPanel Grid.Row="3" Spacing="6" Margin="0,18,0,0">
+      <TextBlock Text="{Binding InstallLabel}" FontSize="12" Foreground="#748272" />
+      <Button x:Name="WindowsInstallButton" Content="{Binding WindowsInstallLabel}"
+              Command="{Binding OpenQemuDocsCommand}" HorizontalAlignment="Left"
+              Background="Transparent" Foreground="#55794F" BorderThickness="0" Padding="0,3" />
+      <Button x:Name="UnixInstallButton" Content="{Binding UnixInstallLabel}"
+              Command="{Binding OpenQemuDocsCommand}" HorizontalAlignment="Left"
+              Background="Transparent" Foreground="#55794F" BorderThickness="0" Padding="0,3" />
+      <TextBlock Text="{Binding InstallStatus}" FontSize="11" Foreground="#A56548" TextWrapping="Wrap" />
+    </StackPanel>
+    <TextBlock x:Name="SaveStatus" Grid.Row="4" Text="{Binding SaveStatus}" FontSize="11"
                Foreground="#A56548" VerticalAlignment="Bottom" TextWrapping="Wrap" />
-    <Button x:Name="CloseButton" Grid.Row="4" Content="{Binding CloseLabel}" Command="{Binding CloseCommand}"
+    <Button x:Name="CloseButton" Grid.Row="5" Content="{Binding CloseLabel}" Command="{Binding CloseCommand}"
             Background="#6F9062" Foreground="White" CornerRadius="7" Padding="18,9"
             HorizontalAlignment="Right" Margin="0,15,0,0" />
+    <TextBlock x:Name="SystemInfo" Grid.Row="6" Text="{Binding SystemInfo}" FontSize="11"
+               Foreground="#748272" HorizontalAlignment="Center" TextAlignment="Center"
+               TextWrapping="Wrap" Margin="0,18,0,0" />
   </Grid>
 </Window>

@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using EtchForge.Models;
 
 namespace EtchForge.Services;
 
@@ -13,6 +14,7 @@ public interface IDesktopInteraction
     Task CopyTextAsync(string text);
     void OpenFolder(string path);
     Task ShowSettingsAsync();
+    Task ShowImageDetailsAsync(ImageInfo image, UiLanguage language);
 }
 
 public sealed class DesktopInteraction(IServiceProvider services) : IDesktopInteraction
@@ -27,7 +29,11 @@ public sealed class DesktopInteraction(IServiceProvider services) : IDesktopInte
         {
             Title = title,
             AllowMultiple = false,
-            FileTypeFilter = [new FilePickerFileType("IMG (*.img)") { Patterns = ["*.img", "*.IMG"] }]
+            FileTypeFilter =
+            [
+                new FilePickerFileType("Disk images") { Patterns = ["*.img", "*.raw", "*.dd", "*.ima", "*.bin", "*.vmdk", "*.vhd", "*.vhdx", "*.qcow2", "*.vdi", "*.iso", "*.dmg"] },
+                new FilePickerFileType("All files") { Patterns = ["*"] }
+            ]
         });
         return files.Count == 0 ? null : files[0].Path.LocalPath;
     }
@@ -56,4 +62,7 @@ public sealed class DesktopInteraction(IServiceProvider services) : IDesktopInte
     }
 
     public Task ShowSettingsAsync() => services.GetRequiredService<SettingsWindow>().ShowDialog(Owner);
+
+    public Task ShowImageDetailsAsync(ImageInfo image, UiLanguage language) =>
+        new ImageDetailsWindow(image, language).ShowDialog(Owner);
 }

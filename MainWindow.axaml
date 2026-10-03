@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EtchForge.MainWindow"
         Title="EtchForge"
+        Icon="avares://EtchForge/Assets/etchforge.png"
         Width="1260" Height="540" MinWidth="1260" MinHeight="540" MaxWidth="1260" MaxHeight="540"
         CanResize="False" Background="#F9FAF6" Foreground="#27372B">
   <Window.Styles>
@@ -91,6 +92,9 @@
                      TextAlignment="Center" TextTrimming="CharacterEllipsis" />
           <TextBlock x:Name="SourceSummary" Text="{Binding SourceSummary}" Classes="note" TextAlignment="Center"
                      TextWrapping="Wrap" MaxHeight="34" />
+          <Button x:Name="DetailsButton" Classes="link" Content="{Binding DetailsLabel}"
+                  Command="{Binding ShowDetailsCommand}" IsEnabled="{Binding DetailsEnabled}"
+                  HorizontalAlignment="Center" FontSize="11" />
           <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
             <TextBlock Text="SHA-256" Classes="note" VerticalAlignment="Center" />
             <Button x:Name="CopyShaButton" Grid.Column="1" Classes="link" Content="{Binding CopyShaLabel}"
