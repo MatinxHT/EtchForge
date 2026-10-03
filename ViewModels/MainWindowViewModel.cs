@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Threading;
@@ -11,6 +12,9 @@ public sealed record FormatChoice(OutputFormat Format, string Name, string Descr
 
 public partial class MainWindowViewModel : ObservableObject, IDisposable
 {
+    private static readonly string AppVersion = typeof(MainWindowViewModel).Assembly
+        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion.Split('+')[0];
+
     private readonly IImageInspector _inspector;
     private readonly IImageConverter _converter;
     private readonly IDesktopInteraction _desktop;
@@ -96,7 +100,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         CopyShaLabel = T("copy");
         CopyMd5Label = T("copy");
         DetailsLabel = T("details");
-        FooterText = T("localOnly");
+        FooterText = $"v{AppVersion} · {T("localOnly")}";
         ResultHint = T("resultHint");
         ElapsedLabel = T("elapsed");
         ProductsLabel = T("products");
