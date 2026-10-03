@@ -3,30 +3,57 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  create-release:
+  prepare:
+    name: Check version
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.tag.outputs.tag }}
+      tag: ${{ steps.version.outputs.tag }}
+      publish: ${{ steps.version.outputs.publish }}
     steps:
-      - id: tag
-        run: echo "tag=build-${{ github.run_number }}-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-      - name: Create release
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Read project version and check existing releases
+        id: version
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.tag.outputs.tag }}" \
-            --repo "${{ github.repository }}" \
-            --target "${{ github.sha }}" \
-            --title "EtchForge ${{ steps.tag.outputs.tag }}" \
-            --generate-notes
+          version="$(dotnet msbuild EtchForge.csproj -getProperty:Version -nologo)"
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Expected a stable major.minor.patch version, got: $version"
+            exit 1
+          fi
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases" \
+            --jq '.[] | select(.draft == false) | .tag_name' > "$RUNNER_TEMP/published-tags.txt"
+          if grep -Fxq "$tag" "$RUNNER_TEMP/published-tags.txt"; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "### $tag is already published; no new release needed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
-    needs: create-release
+    name: Build ${{ matrix.name }}
+    needs: prepare
+    if: needs.prepare.outputs.publish == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -36,6 +63,8 @@ jobs:
           - { name: linux-x64, os: ubuntu-latest, rid: linux-x64 }
           - { name: linux-arm64, os: ubuntu-24.04-arm, rid: linux-arm64 }
     runs-on: ${{ matrix.os }}
+    env:
+      PACKAGE_NAME: EtchForge-${{ needs.prepare.outputs.tag }}-${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -45,29 +74,80 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           ./scripts/package-macos.sh arm64 --self-contained
-          name="EtchForge-${{ matrix.name }}"
-          ditto -c -k --keepParent dist/${{ matrix.rid }}/EtchForge.app "$name.zip"
-          echo "ASSET=$name.zip" >> "$GITHUB_ENV"
+          ditto -c -k --keepParent dist/${{ matrix.rid }}/EtchForge.app "$PACKAGE_NAME.zip"
+          echo "ASSET=$PACKAGE_NAME.zip" >> "$GITHUB_ENV"
       - name: Publish
         if: runner.os != 'macOS'
-        shell: bash
         run: >
           dotnet publish EtchForge.csproj -c Release -r ${{ matrix.rid }}
           --self-contained true -p:UseAppHost=true -o publish
       - name: Package
         if: runner.os != 'macOS'
-        shell: bash
         run: |
-          name="EtchForge-${{ matrix.name }}"
           if [ "${{ runner.os }}" = "Windows" ]; then
-            7z a "$name.zip" ./publish/*
-            echo "ASSET=$name.zip" >> "$GITHUB_ENV"
+            7z a "$PACKAGE_NAME.zip" ./publish/*
+            echo "ASSET=$PACKAGE_NAME.zip" >> "$GITHUB_ENV"
           else
-            tar -czf "$name.tar.gz" -C publish .
-            echo "ASSET=$name.tar.gz" >> "$GITHUB_ENV"
+            tar -czf "$PACKAGE_NAME.tar.gz" -C publish .
+            echo "ASSET=$PACKAGE_NAME.tar.gz" >> "$GITHUB_ENV"
           fi
-      - name: Upload to GitHub Release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ needs.create-release.outputs.tag }}" "$ASSET" --repo "${{ github.repository }}" --clobber
+      - name: Store package for release
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-${{ matrix.name }}
+          path: ${{ env.ASSET }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+          overwrite: true
+
+  release:
+    name: Publish versioned release
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: package-*
+          path: release-assets
+          merge-multiple: true
+      - name: Verify packages and publish
+        run: |
+          for package in windows-x64.zip macos-arm64.zip linux-x64.tar.gz linux-arm64.tar.gz; do
+            test -s "release-assets/EtchForge-$RELEASE_TAG-$package"
+          done
+
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            if [[ "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")" != "$GITHUB_SHA" ]]; then
+              echo "::error::$RELEASE_TAG already points to another commit. Bump the project version."
+              exit 1
+            fi
+          fi
+
+          release="$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" | \
+            jq -sc --arg tag "$RELEASE_TAG" '[.[][] | select(.tag_name == $tag)][0] // null')"
+          if [[ "$release" == "null" ]]; then
+            gh release create "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "$RELEASE_TAG" --generate-notes --draft
+          elif [[ "$(jq -r '.draft' <<< "$release")" != "true" ]]; then
+            echo "$RELEASE_TAG is already published; leaving it unchanged."
+            exit 0
+          elif [[ "$(jq -r '.target_commitish' <<< "$release")" != "$GITHUB_SHA" ]]; then
+            echo "::error::Existing draft targets another commit. Rerun its workflow or bump the project version."
+            exit 1
+          fi
+
+          gh release upload "$RELEASE_TAG" release-assets/* \
+            --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" --title "$RELEASE_TAG" --draft=false
+          echo "### Published $RELEASE_TAG with all four platform packages." >> "$GITHUB_STEP_SUMMARY"

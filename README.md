@@ -46,6 +46,10 @@ dotnet run
 
 应用版本统一在 `EtchForge.csproj` 的 `<Version>` 中维护，采用 `主版本.次版本.修订版本` 格式。升级时只需修改这一处；程序集版本、主页面底部版本号和 macOS 应用包版本会同步更新。页脚从构建生成的版本信息读取版本，并隐藏 Git 提交哈希等构建元数据。
 
+推送到 `main` 后，Release workflow 会读取项目版本，使用 `v0.1.0` 这样的标签和发布名称。已发布的版本会自动跳过；需要发布新版时，先递增 `<Version>`。也可在 Actions 中对 `main` 手动运行 Release workflow。
+
+发布流程为：检查版本 → 构建 Windows x64、macOS ARM64、Linux x64/ARM64 安装包 → 汇总产物 → 上传至草稿 → 公开发布。下载文件包含版本号，例如 `EtchForge-v0.1.0-windows-x64.zip`。构建失败不会创建发布页，上传失败则保留草稿，可重跑同一次 workflow 恢复；已公开的版本不会被覆盖。原有 `build-*` 历史 Release 保留不变。
+
 ## 验证
 
 ```sh
