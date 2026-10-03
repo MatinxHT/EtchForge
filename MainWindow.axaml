@@ -40,7 +40,8 @@
       <TextBlock Grid.Column="1" Text="EtchForge" FontSize="21" FontWeight="SemiBold"
                  HorizontalAlignment="Center" />
       <Button x:Name="SettingsButton" Grid.Column="2" Classes="link" Content="⚙"
-              Click="Settings_Click" FontSize="23" Width="36" Height="34"
+              Command="{Binding OpenSettingsCommand}" ToolTip.Tip="{Binding SettingsToolTip}"
+              FontSize="23" Width="36" Height="34"
               HorizontalAlignment="Right" VerticalAlignment="Center" />
     </Grid>
 
@@ -66,11 +67,13 @@
       </Border>
 
       <Button x:Name="ImportButton" Grid.Column="0" Grid.Row="1" Classes="main"
-              Content="选择 IMG 镜像" Click="Import_Click" Width="220" Height="44"
+              Content="{Binding ImportLabel}" Command="{Binding ImportCommand}"
+              IsEnabled="{Binding ImportEnabled}" Width="220" Height="44"
               HorizontalAlignment="Center" VerticalAlignment="Center" />
       <ComboBox x:Name="FormatPicker" Grid.Column="2" Grid.Row="1" Width="220" Height="44"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                Background="#FFFFFF" Foreground="#27372B" SelectionChanged="Format_Changed">
+                Background="#FFFFFF" Foreground="#27372B"
+                ItemsSource="{Binding Formats}" SelectedItem="{Binding SelectedFormat}">
         <ComboBox.ItemTemplate>
           <DataTemplate>
             <TextBlock Text="{Binding Name}" Foreground="#27372B" FontSize="13" />
@@ -78,72 +81,75 @@
         </ComboBox.ItemTemplate>
       </ComboBox>
       <Button x:Name="OpenOutputButton" Grid.Column="4" Grid.Row="1" Classes="main"
-              Content="打开输出文件夹" Click="OpenOutput_Click" IsEnabled="False" Width="220" Height="44"
+              Content="{Binding OpenFolderLabel}" Command="{Binding OpenFolderCommand}"
+              IsEnabled="{Binding OpenFolderEnabled}" Width="220" Height="44"
               HorizontalAlignment="Center" VerticalAlignment="Center" />
 
       <StackPanel Grid.Column="0" Grid.Row="2" Width="235" Spacing="5" HorizontalAlignment="Center">
-        <StackPanel x:Name="SourceDetails" Spacing="3" IsVisible="False">
-          <TextBlock x:Name="SourceName" Text="" FontSize="13" FontWeight="SemiBold"
+        <StackPanel x:Name="SourceDetails" Spacing="3" IsVisible="{Binding SourceDetailsVisible}">
+          <TextBlock x:Name="SourceName" Text="{Binding SourceName}" FontSize="13" FontWeight="SemiBold"
                      TextAlignment="Center" TextTrimming="CharacterEllipsis" />
-          <TextBlock x:Name="SourceSummary" Text="" Classes="note" TextAlignment="Center"
+          <TextBlock x:Name="SourceSummary" Text="{Binding SourceSummary}" Classes="note" TextAlignment="Center"
                      TextWrapping="Wrap" MaxHeight="34" />
           <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
             <TextBlock Text="SHA-256" Classes="note" VerticalAlignment="Center" />
-            <Button x:Name="CopyShaButton" Grid.Column="1" Classes="link" Content="复制"
-                    Click="CopySha_Click" IsEnabled="False" FontSize="11" />
+            <Button x:Name="CopyShaButton" Grid.Column="1" Classes="link" Content="{Binding CopyShaLabel}"
+                    Command="{Binding CopyShaCommand}" IsEnabled="{Binding CopyShaEnabled}" FontSize="11" />
           </Grid>
-          <TextBox x:Name="ShaText" Classes="value" Text="" IsReadOnly="True" TextWrapping="Wrap" />
+          <TextBox x:Name="ShaText" Classes="value" Text="{Binding ShaText, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" />
           <Grid ColumnDefinitions="*,Auto" Margin="0,3,0,0">
             <TextBlock Text="MD5" Classes="note" VerticalAlignment="Center" />
-            <Button x:Name="CopyMd5Button" Grid.Column="1" Classes="link" Content="复制"
-                    Click="CopyMd5_Click" IsEnabled="False" FontSize="11" />
+            <Button x:Name="CopyMd5Button" Grid.Column="1" Classes="link" Content="{Binding CopyMd5Label}"
+                    Command="{Binding CopyMd5Command}" IsEnabled="{Binding CopyMd5Enabled}" FontSize="11" />
           </Grid>
-          <TextBox x:Name="Md5Text" Classes="value" Text="" IsReadOnly="True" TextWrapping="Wrap" />
+          <TextBox x:Name="Md5Text" Classes="value" Text="{Binding Md5Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" />
         </StackPanel>
-        <StackPanel x:Name="ImportFeedback" Spacing="5" IsVisible="False" Margin="0,4,0,0">
-          <TextBlock x:Name="ImportStatus" Text="" Classes="note" TextAlignment="Center" TextWrapping="Wrap" />
-          <ProgressBar x:Name="ImportProgress" Minimum="0" Maximum="100" Value="0" Height="4" />
+        <StackPanel x:Name="ImportFeedback" Spacing="5" IsVisible="{Binding ImportFeedbackVisible}" Margin="0,4,0,0">
+          <TextBlock x:Name="ImportStatus" Text="{Binding ImportStatus}" Classes="note" TextAlignment="Center" TextWrapping="Wrap" />
+          <ProgressBar x:Name="ImportProgress" Minimum="0" Maximum="100" Value="{Binding ImportProgressValue}" Height="4" />
         </StackPanel>
       </StackPanel>
 
       <StackPanel Grid.Column="2" Grid.Row="2" Width="235" Spacing="6" HorizontalAlignment="Center">
-        <TextBlock x:Name="FormatDescription" Text="" Classes="note" TextAlignment="Center"
+        <TextBlock x:Name="FormatDescription" Text="{Binding FormatDescription}" Classes="note" TextAlignment="Center"
                    TextWrapping="Wrap" />
-        <Button x:Name="ConvertButton" Classes="main" Content="开始转换" Click="Convert_Click"
-                IsEnabled="False" Width="220" Height="42" HorizontalAlignment="Center" Margin="0,7,0,0" />
-        <Button x:Name="ChooseFolderButton" Classes="link" Content="选择保存位置"
-                Click="Output_Click" HorizontalAlignment="Center" />
-        <TextBlock x:Name="OutputDirectoryText" Text="导入后建议保存位置" Classes="note"
+        <Button x:Name="ConvertButton" Classes="main" Content="{Binding ConvertLabel}" Command="{Binding ConvertCommand}"
+                IsEnabled="{Binding ConvertEnabled}" Width="220" Height="42" HorizontalAlignment="Center" Margin="0,7,0,0" />
+        <Button x:Name="ChooseFolderButton" Classes="link" Content="{Binding ChooseFolderLabel}"
+                Command="{Binding ChooseFolderCommand}" IsEnabled="{Binding ChooseFolderEnabled}" HorizontalAlignment="Center" />
+        <TextBlock x:Name="OutputDirectoryText" Text="{Binding OutputDirectoryText}"
+                   ToolTip.Tip="{Binding OutputDirectoryToolTip}" Classes="note"
                    TextAlignment="Center" TextTrimming="CharacterEllipsis" />
-        <TextBox x:Name="OutputPreview" Classes="value" Text="选择镜像后显示产物路径"
+        <TextBox x:Name="OutputPreview" Classes="value" Text="{Binding OutputPreview, Mode=OneWay}"
+                 ToolTip.Tip="{Binding OutputPreviewToolTip}"
                  IsReadOnly="True" TextWrapping="Wrap" TextAlignment="Center" MaxHeight="43" />
-        <StackPanel x:Name="ConversionPanel" Spacing="6" IsVisible="False">
+        <StackPanel x:Name="ConversionPanel" Spacing="6" IsVisible="{Binding ConversionPanelVisible}">
           <Grid ColumnDefinitions="*,Auto">
-            <TextBlock x:Name="ConversionStatus" Text="等待开始" Classes="note" TextWrapping="Wrap" />
-            <TextBlock x:Name="ProgressPercent" Grid.Column="1" Text="0%" Classes="note"
+            <TextBlock x:Name="ConversionStatus" Text="{Binding ConversionStatus}" Classes="note" TextWrapping="Wrap" />
+            <TextBlock x:Name="ProgressPercent" Grid.Column="1" Text="{Binding ProgressPercent}" Classes="note"
                        Foreground="#55794F" Margin="5,0,0,0" />
           </Grid>
-          <ProgressBar x:Name="ConversionProgress" Minimum="0" Maximum="100" Value="0" Height="5" />
-          <Button x:Name="CancelButton" Classes="link" Content="取消转换" Click="Cancel_Click"
-                  HorizontalAlignment="Center" IsVisible="False" />
+          <ProgressBar x:Name="ConversionProgress" Minimum="0" Maximum="100" Value="{Binding ConversionProgressValue}" Height="5" />
+          <Button x:Name="CancelButton" Classes="link" Content="{Binding CancelLabel}" Command="{Binding CancelCommand}"
+                  HorizontalAlignment="Center" IsVisible="{Binding CancelVisible}" />
         </StackPanel>
       </StackPanel>
 
       <StackPanel Grid.Column="4" Grid.Row="2" Width="235" Spacing="7" HorizontalAlignment="Center">
-        <TextBlock x:Name="ResultHint" Text="转换完成后显示产物信息" Classes="note"
+        <TextBlock x:Name="ResultHint" Text="{Binding ResultHint}" IsVisible="{Binding ResultHintVisible}" Classes="note"
                    TextAlignment="Center" TextWrapping="Wrap" />
-        <StackPanel x:Name="ResultPanel" Spacing="4" IsVisible="False">
-          <TextBlock x:Name="ElapsedLabel" Text="用时" Classes="note" />
-          <TextBlock x:Name="ResultElapsedText" Text="" FontSize="14" FontWeight="SemiBold" />
-          <TextBlock x:Name="ProductsLabel" Text="产物信息" Classes="note" Margin="0,8,0,0" />
-          <TextBlock x:Name="ResultInfoText" Text="" FontSize="12" />
-          <TextBox x:Name="ResultFilesText" Classes="value" Text="" IsReadOnly="True"
+        <StackPanel x:Name="ResultPanel" Spacing="4" IsVisible="{Binding ResultPanelVisible}">
+          <TextBlock x:Name="ElapsedLabel" Text="{Binding ElapsedLabel}" Classes="note" />
+          <TextBlock x:Name="ResultElapsedText" Text="{Binding ResultElapsedText}" FontSize="14" FontWeight="SemiBold" />
+          <TextBlock x:Name="ProductsLabel" Text="{Binding ProductsLabel}" Classes="note" Margin="0,8,0,0" />
+          <TextBlock x:Name="ResultInfoText" Text="{Binding ResultInfoText}" FontSize="12" />
+          <TextBox x:Name="ResultFilesText" Classes="value" Text="{Binding ResultFilesText, Mode=OneWay}" IsReadOnly="True"
                    TextWrapping="Wrap" MaxHeight="92" />
         </StackPanel>
       </StackPanel>
     </Grid>
 
-    <TextBlock x:Name="FooterText" Grid.Row="2" Text="所有文件都在本机处理"
+    <TextBlock x:Name="FooterText" Grid.Row="2" Text="{Binding FooterText}"
                Classes="note" HorizontalAlignment="Center" />
   </Grid>
 </Window>

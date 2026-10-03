@@ -2,7 +2,7 @@ namespace EtchForge.Services;
 
 public static class UiText
 {
-    public static string Get(string key)
+    public static string Get(string key, UiLanguage language)
     {
         var (zh, en) = key switch
         {
@@ -45,6 +45,6 @@ public static class UiText
             "unknownPartitions" => ("未识别分区表 / 无分区磁盘", "Unknown partition table / unpartitioned disk"),
             _ => (key, key)
         };
-        return AppPreferences.Language == UiLanguage.English ? en : zh;
+        return language == UiLanguage.English ? en : zh;
     }
 }

@@ -1,29 +1,26 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="EtchForge.SettingsWindow"
-        Title="设置" Width="430" Height="270" CanResize="False"
+        Title="{Binding Title}" Width="430" Height="270" CanResize="False"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="#F9FAF6" Foreground="#27372B">
   <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="26,22,26,22">
-    <TextBlock x:Name="Heading" Text="设置" FontSize="21" FontWeight="SemiBold" />
+    <TextBlock x:Name="Heading" Text="{Binding Title}" FontSize="21" FontWeight="SemiBold" />
     <StackPanel Grid.Row="1" Spacing="8" Margin="0,24,0,0">
-      <TextBlock x:Name="LanguageLabel" Text="界面语言" FontSize="12" Foreground="#748272" />
+      <TextBlock x:Name="LanguageLabel" Text="{Binding LanguageLabel}" FontSize="12" Foreground="#748272" />
       <ComboBox x:Name="LanguagePicker" HorizontalAlignment="Stretch" MinHeight="40"
-                Background="White" SelectionChanged="Language_Changed">
-        <ComboBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding Label}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
+                Background="White" SelectedIndex="{Binding SelectedLanguageIndex}">
+        <ComboBoxItem Content="简体中文" />
+        <ComboBoxItem Content="English" />
       </ComboBox>
     </StackPanel>
     <StackPanel Grid.Row="2" Spacing="4" Margin="0,18,0,0">
-      <TextBlock x:Name="EngineLabel" Text="转换引擎" FontSize="12" Foreground="#748272" />
-      <TextBlock x:Name="EngineValue" Text="" FontSize="12" TextWrapping="Wrap" />
+      <TextBlock x:Name="EngineLabel" Text="{Binding EngineLabel}" FontSize="12" Foreground="#748272" />
+      <TextBlock x:Name="EngineValue" Text="{Binding EngineValue}" FontSize="12" TextWrapping="Wrap" />
     </StackPanel>
-    <TextBlock x:Name="SaveStatus" Grid.Row="3" Text="" FontSize="11"
+    <TextBlock x:Name="SaveStatus" Grid.Row="3" Text="{Binding SaveStatus}" FontSize="11"
                Foreground="#A56548" VerticalAlignment="Bottom" TextWrapping="Wrap" />
-    <Button x:Name="CloseButton" Grid.Row="4" Content="关闭" Click="Close_Click"
+    <Button x:Name="CloseButton" Grid.Row="4" Content="{Binding CloseLabel}" Command="{Binding CloseCommand}"
             Background="#6F9062" Foreground="White" CornerRadius="7" Padding="18,9"
             HorizontalAlignment="Right" Margin="0,15,0,0" />
   </Grid>

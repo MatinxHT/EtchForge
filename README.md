@@ -2,6 +2,8 @@
 
 一个用 Avalonia 12 和 .NET 10 编写的本地磁盘镜像转换桌面应用。固定 21:9 的主窗口沿一条横向流程完成：左侧导入 raw `.img`，中间选择格式、保存位置并转换，右侧打开输出文件夹、查看耗时和产物信息。导入后直接显示 SHA-256 和 MD5，可选中文本或点击对应的“复制”按钮。右上角设置可在简体中文与 English 之间即时切换，选择会保存到本机。不会连接 ESXi、Hyper-V 或其他虚拟机平台。
 
+界面采用 CommunityToolkit.Mvvm 的可观察属性与命令；Microsoft.Extensions.Hosting 管理应用生命周期，Microsoft.Extensions.DependencyInjection 负责窗口、ViewModel 和服务的创建。
+
 ![界面预览](docs/preview.png)
 
 ## 运行
@@ -40,12 +42,16 @@ dotnet run
 dotnet run --project tests/EtchForge.Smoke/EtchForge.Smoke.csproj
 ```
 
-该测试使用 1 MiB 临时镜像检查哈希、ESXi 描述符和完整字节内容，并通过 Avalonia Headless 加载与渲染界面、验证结果信息及中英语言切换。测试不依赖 `qemu-img`；其他格式需在已安装 QEMU 的平台上进一步验证。
+该测试使用 1 MiB 临时镜像检查哈希、ESXi 描述符和完整字节内容；通过 Host 解析 ViewModel 与窗口，执行导入、转换、复制命令，并用 Avalonia Headless 验证数据绑定、界面渲染和中英语言切换。测试不依赖 `qemu-img`；其他格式需在已安装 QEMU 的平台上进一步验证。
 
 ## 项目结构
 
-- `MainWindow.axaml`：三步式界面。
-- `SettingsWindow.axaml`：语言及转换引擎设置。
+- `AppHost.cs`：Generic Host 与依赖注入注册；`Program.cs` 启停 Host。
+- `MainWindow.axaml`、`SettingsWindow.axaml`：视图及数据绑定，代码隐藏仅处理视图生命周期。
+- `ViewModels/`：界面状态、异步命令、进度与语言更新。
+- `Services/DesktopInteraction.cs`：文件选择、剪贴板、设置弹窗和文件管理器的桌面接口。
+- `Services/ImageOperations.cs`：镜像检查与转换服务接口及适配器。
+- `Services/AppPreferences.cs`：语言设置持久化与变更通知。
 - `Services/ImageInspector.cs`：格式初筛、磁盘信息和哈希。
 - `Services/ConversionService.cs`：内置 ESXi 转换、`qemu-img` 调用、进度和暂存发布。
 - `Models/OutputFormat.cs`：支持格式及其转换参数。
